@@ -7,8 +7,7 @@ global.cachedTokens = [];
 global.tokenLifeDuration = ServerVariables.get("main.token.lifeDuration");
 global.tokensCleanerStarted = false;
 
-export default
-    class TokensManager {
+export default class TokensManager {
     static create(user) {
         if (!tokensCleanerStarted) {
             tokensCleanerStarted = true;
@@ -20,15 +19,22 @@ export default
             token.Expire_Time = utilities.nowInSeconds() + tokenLifeDuration;
             cachedTokens.push(token);
             console.log(BgGreen + FgWhite, "User " + token.User.Name + " logged in");
-        } else {
+        } else
             console.log(BgGreen + FgWhite, "User " + token.User.Name + " already logged in");
-        }
         return token;
+    }
+    static findUserToken(userId) {
+        for (let token of cachedTokens) {
+            if (token.User.Id == userId) {
+                token.Expire_Time = utilities.nowInSeconds() + tokenLifeDuration; // renew expiration date
+                return token;
+            }
+        }
+        return null;
     }
     static createToken(user = null) {
         let token = {};
         if (user) {
-            token.Id = 0;
             token.Access_token = TokensManager.makeToken(user.Email);
             token.User = user;
         }
@@ -50,41 +56,27 @@ export default
         }
         return encrypt(text).encryptedData;
     }
-
     static startTokensCleaner() {
         // periodic cleaning of expired tokens
         setInterval(TokensManager.clean, tokenLifeDuration * 1000);
         console.log(BgGreen + FgWhite, "Periodic tokens cleaning process started...");
     }
-
-    static findUserToken(userId) {
-        for (let token of cachedTokens) {
-            if (token.User.Id == userId) {
-                // renew expiration date
-                token.Expire_Time = utilities.nowInSeconds() + tokenLifeDuration;
-                return token;
-            }
-        }
-        return null;
-    }
-    static logout(userId) {
-        cachedTokens = cachedTokens.filter(token => token.User.Id != userId);
-    }
     static clean() {
         for (let token of cachedTokens) {
-           // console.log('token.Expire_Time ', token.Expire_Time, ' utilities.nowInSeconds() ', utilities.nowInSeconds())
+            // console.log('token.Expire_Time ', token.Expire_Time, ' utilities.nowInSeconds() ', utilities.nowInSeconds())
             if (token.Expire_Time > utilities.nowInSeconds())
                 console.log(BgGreen + FgWhite, `Token of user ${token.User.Name} has expired.`);
         }
         cachedTokens = cachedTokens.filter(token => token.Expire_Time > utilities.nowInSeconds());
     }
+    static logout(userId) {
+        cachedTokens = cachedTokens.filter(token => token.User.Id != userId);
+    }
     static findAccesToken(access_token, renew = true) {
         for (let token of cachedTokens) {
             if (token.Access_token == access_token) {
-                if (renew) {
-                    // renew expiration date
-                    token.Expire_Time = utilities.nowInSeconds() + tokenLifeDuration;
-                }
+                if (renew)
+                    token.Expire_Time = utilities.nowInSeconds() + tokenLifeDuration; // renew expiration date
                 return token;
             }
         }

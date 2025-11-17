@@ -24,8 +24,15 @@ export default class HttpContext {
         this.payload = null;
         this.secure = req.headers['x-forwarded-proto'] != undefined;
         this.host = (this.secure ? "https://" : "http://") + req.headers["host"];
-        this.hostIp = req.headers['x-forwarded-for'] != undefined ? req.headers['x-forwarded-for'] : (req.connection.remoteAddress == "::1" ? "localhost" : req.connection.remoteAddress);
-        this.isCacheable = this.path.isAPI && this.req.method == "GET" && this.path.id == '' && !this.path.queryString.includes("limit");
+        this.hostIp = req.headers['x-forwarded-for'] != undefined ?
+            req.headers['x-forwarded-for'] :
+            req.connection.remoteAddress == "::1" ?
+                "localhost" :
+                req.connection.remoteAddress;
+        this.isCacheable = this.path.isAPI &&
+            this.req.method == "GET" &&
+            this.path.id == '' &&
+            !this.path.queryString.includes("limit");
         this.user = TokenManager.getUser(req);
         this.authorizations = this.user ? this.user.Authorizations : null;
     }

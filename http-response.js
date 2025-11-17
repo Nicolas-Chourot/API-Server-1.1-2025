@@ -51,7 +51,8 @@ export default class Response {
         this.res.writeHead(204, { 'ETag': ETag });
         this.end();
     }
-     addInRequestsCache(jsonObj, ETag, requiredAuthorizations) {
+
+    addInRequestsCache(jsonObj, ETag, requiredAuthorizations) {
         if (this.HttpContext.isCacheable)
             CachedRequests.add(this.HttpContext.req.url, jsonObj, ETag, requiredAuthorizations);
     }
@@ -70,6 +71,7 @@ export default class Response {
         } else
             return this.end();
     }
+    
     HTML(content) {
         this.res.writeHead(200, { 'content-type': 'text/html' });
         return this.end(content);

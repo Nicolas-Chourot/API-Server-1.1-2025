@@ -18,8 +18,7 @@ export default class CachedRequestsManager {
         }
         if (url != "") {
             cachedRequests.push(
-                {
-                    url,
+                {   url,
                     content,
                     ETag,
                     requiredAuthorizations,
@@ -60,17 +59,11 @@ export default class CachedRequestsManager {
         }
         cachedRequests = cachedRequests.filter(endpoint => endpoint.Expire_Time > now);
     }
-    static readGranted(HttpContext, requiredAuthorizations) {
-        if (requiredAuthorizations)
-            return Authorizations.readGranted(HttpContext, requiredAuthorizations);
-        return true;
-    }
-
     static get(HttpContext) {
         if (HttpContext.isCacheable) {
             let cacheFound = CachedRequestsManager.find(HttpContext.req.url);
             if (cacheFound) {
-                if (CachedRequestsManager.readGranted(HttpContext.authorizations, cacheFound.requiredAuthorizations)) {
+                if (Authorizations.readGranted(HttpContext.authorizations, cacheFound.requiredAuthorizations)) {
                     if (Repository.getETag(HttpContext.path.model) == cacheFound.ETag) {
                         HttpContext.response.JSON(cacheFound.content, cacheFound.ETag, true);
                         console.log(BgCyan + FgWhite, `[Response content of request Get: ${HttpContext.req.url} retrieved from cache]`);
@@ -80,6 +73,9 @@ export default class CachedRequestsManager {
                         console.log(BgCyan + FgWhite, `[Caches of obselete ${HttpContext.path.model} data deleted.]`);
                         return false;
                     }
+                } else {
+                    HttpContext.response.unAuthorized("Unauthorized access");
+                    return true;
                 }
             }
         }

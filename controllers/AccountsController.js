@@ -10,20 +10,6 @@ export default class AccountsController extends Controller {
     constructor(HttpContext) {
         super(HttpContext, new Repository(new UserModel()), AccessControl.admin());
     }
-    index(id) {
-        if (id != '') {
-            if (AccessControl.readGranted(this.HttpContext.authorizations, AccessControl.admin()))
-                this.HttpContext.response.JSON(this.repository.get(id));
-            else
-                this.HttpContext.response.unAuthorized("Unauthorized access");
-        }
-        else {
-            if (AccessControl.granted(this.HttpContext.authorizations, AccessControl.admin()))
-                this.HttpContext.response.JSON(this.repository.getAll(this.HttpContext.path.params), this.repository.ETag, false, AccessControl.admin());
-            else
-                this.HttpContext.response.unAuthorized("Unauthorized access");
-        }
-    }
     // POST: /token body payload[{"Email": "...", "Password": "..."}]
     login(loginInfo) {
         if (loginInfo) {
@@ -34,9 +20,8 @@ export default class AccountsController extends Controller {
                         user = this.repository.get(user.Id);
                         let newToken = TokenManager.create(user);
                         this.HttpContext.response.created(newToken);
-                    } else {
+                    } else 
                         this.HttpContext.response.wrongPassword("Wrong password.");
-                    }
                 } else
                     this.HttpContext.response.userNotFound("This user email is not found.");
             } else

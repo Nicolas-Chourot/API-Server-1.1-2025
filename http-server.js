@@ -8,7 +8,7 @@ RouteRegister.add('GET', 'Bookmarks', 'list');
 
 let server = new APIServer();
 server.start();
-RouteRegister.add('GET', 'accounts');
+
 RouteRegister.add('POST', 'accounts', 'register');
 RouteRegister.add('GET', 'accounts', 'verify');
 RouteRegister.add('GET', 'accounts', 'logout');
